@@ -54,8 +54,12 @@ o: Total SF (300), Total Circumference LF (100) - Found 2 blocks
 
  */
 
+
 public class BlockCountLengthArea168 {
+
 	private String[][] matrix;
+	private ArrayList<Block> blocks = new ArrayList<Block>();
+	private ArrayList<String> blockPattern = new ArrayList<String>();
 
 	public static void main(String[] args) {
 		new BlockCountLengthArea168().init();
@@ -71,30 +75,119 @@ public class BlockCountLengthArea168 {
 	}
 
 	private void printresults() {
-		// TODO Auto-generated method stub
-		
+		int obvod = 0;
+		int obsah = 0;
+		int pocetblokov = 0;
+		for (String pattern : blockPattern) {
+			for (Block block : blocks) {
+				if (block.getBlockPattern().equals(pattern)){
+					obvod += block.getObvod();
+					obsah += block.getPlocha();
+					pocetblokov++;
+				}
+			}
+			System.out.println(pattern + ": Total SF ("+ obsah  +"), Total Circumference LF ("+obvod+") - Found "+pocetblokov+" block");
+		}
 	}
 
 	private void calculate() {
-		// TODO Auto-generated method stub
-		
+		for (int row = 0; row < this.matrix[0].length; row++) {
+			for (int column = 0; column < this.matrix.length; column++) {
+				if (blocks.size() == 0) {
+					blocks.add(new Block(matrix[row][column]));
+					blockPattern.add(matrix[row][column]);
+				} else
+					for (Block block : blocks) {
+						if (matrix[row][column].equals(block.getBlockPattern())) {
+//---------------						
+							int merge = 0;
+							if (isInMatrix(matrix, row - 1, column))
+								if (matrix[row][column].equals(matrix[row - 1][column]))
+									merge++;
+
+							if (matrix[row][column].equals(matrix[row][column - 1]))
+								merge++;
+
+						}
+				}
+			}
+		}
+
+	}
+	
+	private void mergeBlocks(Block block1, Block block2){
+				
+	}
+	
+	private boolean isInMatrix(String[][] matrix, int row, int column){
+		return false;
 	}
 
 	private void read() {
 		Scanner scan = new Scanner(System.in);
-		while (scan.hasNextLine()){
+		while (scan.hasNextLine()) {
 			String[] nexline = scan.nextLine().split("(?!^)");
-			if (nexline.length <=1) break;
+			if (nexline.length <= 1)
+				break;
 			matrix = new String[nexline.length][nexline.length];
 			for (int i = 0; i < nexline.length; i++) {
 				matrix[i] = nexline;
 			}
 		}
 	}
-
 }
 
+class Block {
 
-class block{
+	private String blockPattern;
+
+	ArrayList<Integer[]> bloky = new ArrayList<Integer[]>();
+
+	Block(String blockPattern) {
+		this.setBlockPattern(blockPattern);
+	}
+	Block(String blockPattern,ArrayList<Integer[]> bloky ) {
+		this.setBlockPattern(blockPattern);
+		this.bloky = bloky;
+	}
+
+	public int getPlocha() {
+		return bloky.size() * 100;
+	}
+
+	public int getObvod() {
+		int obvod = 0;
+		for (Integer[] c : bloky) {
+			if (!isPart(c[0] - 1, c[1]))
+				obvod++;
+			if (!isPart(c[0] + 1, c[1]))
+				obvod++;
+			if (!isPart(c[0], c[1] - 1))
+				obvod++;
+			if (!isPart(c[0], c[1] + 1))
+				obvod++;
+		}
+		return obvod * 10;
+	}
+
+	public boolean isPart(int row, int column) {
+		for (Integer[] c : bloky) {
+			if (c[0] == 0 && c[1] == column)
+				return true;
+		}
+		return false;
+	}
+
+	public void addblock(int row, int column) {
+		bloky.add(new Integer[] { row, column });
+	}
+
+	public String getBlockPattern() {
+		return blockPattern;
+	}
+
+	public void setBlockPattern(String blockPattern) {
+		this.blockPattern = blockPattern;
+	}
 	
 }
