@@ -99,7 +99,7 @@ public class BlockCountLengthArea168 {
 				} else
 					for (Block block : blocks) {
 						if (matrix[row][column].equals(block.getBlockPattern())) {
-//---------------						
+//---------------					FAILL! - not complete!	
 							int merge = 0;
 							if (isInMatrix(matrix, row - 1, column))
 								if (matrix[row][column].equals(matrix[row - 1][column]))
