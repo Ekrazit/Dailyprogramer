@@ -57,9 +57,10 @@ o: Total SF (300), Total Circumference LF (100) - Found 2 blocks
 
 public class BlockCountLengthArea168 {
 
+
 	private String[][] matrix;
 	private ArrayList<Block> blocks = new ArrayList<Block>();
-	private ArrayList<String> blockPattern = new ArrayList<String>();
+	private Set<String> blockPattern = new HashSet<String>();
 
 	public static void main(String[] args) {
 		new BlockCountLengthArea168().init();
@@ -74,56 +75,103 @@ public class BlockCountLengthArea168 {
 		printresults();
 	}
 
-	private void printresults() {
+	/**
+	 * vypis hodnot
+	 * 
+	 */
+
+	protected void printresults() {
 		int obvod = 0;
 		int obsah = 0;
 		int pocetblokov = 0;
 		for (String pattern : blockPattern) {
 			for (Block block : blocks) {
-				if (block.getBlockPattern().equals(pattern)){
+				if (block.getBlockPattern().equals(pattern)) {
 					obvod += block.getObvod();
 					obsah += block.getPlocha();
 					pocetblokov++;
 				}
 			}
-			System.out.println(pattern + ": Total SF ("+ obsah  +"), Total Circumference LF ("+obvod+") - Found "+pocetblokov+" block");
+			System.out.println(pattern + ": Total SF (" + obsah
+					+ "), Total Circumference LF (" + obvod + ") - Found "
+					+ pocetblokov + " block");
 		}
 	}
 
-	private void calculate() {
+	/**
+	 * Hlavna kalkulacia
+	 */
+	protected void calculate() {
 		for (int row = 0; row < this.matrix[0].length; row++) {
 			for (int column = 0; column < this.matrix.length; column++) {
-				if (blocks.size() == 0) {
-					blocks.add(new Block(matrix[row][column]));
-					blockPattern.add(matrix[row][column]);
-				} else
-					for (Block block : blocks) {
-						if (matrix[row][column].equals(block.getBlockPattern())) {
-//---------------					FAILL! - not complete!	
-							int merge = 0;
-							if (isInMatrix(matrix, row - 1, column))
-								if (matrix[row][column].equals(matrix[row - 1][column]))
-									merge++;
 
-							if (matrix[row][column].equals(matrix[row][column - 1]))
-								merge++;
+				// -------------- new design potreba junit testy nabehnut aby
 
+				if (!checkCell(matrix, row, column)) {
+					Block aktualnyblok = pridajdonovehobloku(matrix, row, column, this.matrix[row][column]);
+					blockPattern.add(this.matrix[row][column]);
+					ArrayList<Integer[]> susendebloku = najdisusedne(matrix,row, column, matrix[row][column], aktualnyblok);
+					while (susendebloku.size() <= 0) {
+						ArrayList<Integer[]> docasny = new ArrayList<Integer[]>();
+						for (Integer[] pozicia : susendebloku) {
+							pridajdonovehobloku(matrix, row, column, this.matrix[row][column]);
+							docasny = najdisusedne(matrix, row, column,	matrix[row][column], aktualnyblok);
 						}
+						susendebloku.clear();
+						susendebloku = docasny;
+					}
 				}
+
 			}
 		}
 
 	}
-	
-	private void mergeBlocks(Block block1, Block block2){
-				
+
+	/**
+	 * najde sussedne bloky , tak aby skontroloval si uz sa nenachadza nieco v aktualnom bloku
+	 * 
+	 * @param matrix2 matica na ktorej sa to bude testovat
+	 * @param row 
+	 * @param column
+	 * @param aktualnyblok 
+	 * @param string textura na "fotografii"
+	 * @return zoznam vsetkych susednych objektov 
+	 */
+	protected ArrayList<Integer[]> najdisusedne(String[][] matrix2, int row, int column, String textura, Block aktualnyblok) {
+		// TODO Auto-generated method stub
+		return null;
 	}
-	
-	private boolean isInMatrix(String[][] matrix, int row, int column){
+
+	/**
+	 * zalozi noviblok s hodnotou texturov
+	 * 
+	 * @param matrix2  matica na ktorej sa to bude testovat
+	 * @param row riadok
+	 * @param column stlpec
+	 * @return vrati novovytvoreny blok
+	 */
+	protected Block pridajdonovehobloku(String[][] matrix2, int row, int column, String textura) {
+		return null;
+
+	}
+
+	/**
+	 * Skontrouje ci na nachadza dana bunka v niektorom z blokov matice
+	 * 
+	 * @param matrix2 matica na ktorej sa to bude testovat
+	 * @param row riadok 
+	 * @param column stlpec
+	 * @return vrati ci je uz dana bunka v nejakom bloku 
+	 */
+	protected boolean checkCell(String[][] matrix2, int row, int column) {
+		// TODO Auto-generated method stub
 		return false;
 	}
 
-	private void read() {
+	/**
+	 * nacitanie hodnout z prikazoveho riadka. Predpokolada sa stvorcova matica
+	 */
+	protected void read() {
 		Scanner scan = new Scanner(System.in);
 		while (scan.hasNextLine()) {
 			String[] nexline = scan.nextLine().split("(?!^)");
@@ -137,6 +185,13 @@ public class BlockCountLengthArea168 {
 	}
 }
 
+/**
+ * Drzi v obejekte hodnoty jednotlivych blokov a vypocitava pozadovane udaje
+ * 
+ * @author RG
+ * 
+ */
+
 class Block {
 
 	private String blockPattern;
@@ -146,15 +201,26 @@ class Block {
 	Block(String blockPattern) {
 		this.setBlockPattern(blockPattern);
 	}
-	Block(String blockPattern,ArrayList<Integer[]> bloky ) {
+
+	Block(String blockPattern, ArrayList<Integer[]> bloky) {
 		this.setBlockPattern(blockPattern);
 		this.bloky = bloky;
 	}
 
+	/**
+	 * Vrati plochu drzanu v tomto objekte
+	 * 
+	 * @return Area of block
+	 */
 	public int getPlocha() {
 		return bloky.size() * 100;
 	}
 
+	/**
+	 * vrati obvod drzany v tomto objekte
+	 * 
+	 * @return circumviation of block
+	 */
 	public int getObvod() {
 		int obvod = 0;
 		for (Integer[] c : bloky) {
@@ -170,6 +236,15 @@ class Block {
 		return obvod * 10;
 	}
 
+	/**
+	 * skontroluje ci bunka sucastov objektu.
+	 * 
+	 * @param row
+	 * 
+	 * @param column
+	 * 
+	 * @return is part of object
+	 */
 	public boolean isPart(int row, int column) {
 		for (Integer[] c : bloky) {
 			if (c[0] == 0 && c[1] == column)
@@ -189,5 +264,4 @@ class Block {
 	public void setBlockPattern(String blockPattern) {
 		this.blockPattern = blockPattern;
 	}
-	
 }
