@@ -1,7 +1,3 @@
-package dailyprogrammer;
-
-import java.util.Scanner;
-
 /** Block Count, Length & Area 168
  * 
  * To keep this within our scope we have converted the plans into an ASCII picture.
@@ -55,8 +51,15 @@ o: Total SF (300), Total Circumference LF (100) - Found 2 blocks
  */
 
 
-public class BlockCountLengthArea168 {
 
+package dailyprogramer;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Scanner;
+import java.util.Set;
+
+public class BlockCountLengthArea168 {
 
 	private String[][] matrix;
 	private ArrayList<Block> blocks = new ArrayList<Block>();
@@ -69,7 +72,7 @@ public class BlockCountLengthArea168 {
 	public BlockCountLengthArea168() {
 	}
 
-	private void init() {
+	protected void init() {
 		read();
 		calculate();
 		printresults();
@@ -81,10 +84,11 @@ public class BlockCountLengthArea168 {
 	 */
 
 	protected void printresults() {
-		int obvod = 0;
-		int obsah = 0;
-		int pocetblokov = 0;
+
 		for (String pattern : blockPattern) {
+			int obvod = 0;
+			int obsah = 0;
+			int pocetblokov = 0;
 			for (Block block : blocks) {
 				if (block.getBlockPattern().equals(pattern)) {
 					obvod += block.getObvod();
@@ -92,30 +96,27 @@ public class BlockCountLengthArea168 {
 					pocetblokov++;
 				}
 			}
-			System.out.println(pattern + ": Total SF (" + obsah
-					+ "), Total Circumference LF (" + obvod + ") - Found "
+			System.out.println(pattern + ": Total SF (" + obsah+ "), Total Circumference LF (" + obvod + ") - Found "
 					+ pocetblokov + " block");
 		}
 	}
 
 	/**
-	 * Hlavna kalkulacia
+	 * Hlavna kalkulacia , skontroluje ci neni bunka uz v bloku a potom progresivne hlada vsetky buky do bloku 
 	 */
 	protected void calculate() {
 		for (int row = 0; row < this.matrix[0].length; row++) {
-			for (int column = 0; column < this.matrix.length; column++) {
-
-				// -------------- new design potreba junit testy nabehnut aby
-
-				if (!checkCell(matrix, row, column)) {
-					Block aktualnyblok = pridajdonovehobloku(matrix, row, column, this.matrix[row][column]);
+			for (int column = 0; column < this.matrix.length; column++){
+				if (!checkCell(row, column)) {	
+					Block aktualnyblok = pridajdonovehobloku(this.matrix, row, column, this.matrix[row][column]);
 					blockPattern.add(this.matrix[row][column]);
-					ArrayList<Integer[]> susendebloku = najdisusedne(matrix,row, column, matrix[row][column], aktualnyblok);
-					while (susendebloku.size() <= 0) {
-						ArrayList<Integer[]> docasny = new ArrayList<Integer[]>();
+					HashSet<Integer[]> susendebloku = najdiSusedne(row, column, this.matrix[row][column], aktualnyblok);
+					while (susendebloku.size() > 0) {
+						HashSet<Integer[]> docasny = new HashSet<Integer[]>();
 						for (Integer[] pozicia : susendebloku) {
-							pridajdonovehobloku(matrix, row, column, this.matrix[row][column]);
-							docasny = najdisusedne(matrix, row, column,	matrix[row][column], aktualnyblok);
+								if (!checkCell(pozicia[0], pozicia[1]))
+										aktualnyblok.addblock(pozicia[0], pozicia[1]);
+								docasny.addAll(najdiSusedne(pozicia[0], pozicia[1],	this.matrix[row][column],aktualnyblok));
 						}
 						susendebloku.clear();
 						susendebloku = docasny;
@@ -137,9 +138,30 @@ public class BlockCountLengthArea168 {
 	 * @param string textura na "fotografii"
 	 * @return zoznam vsetkych susednych objektov 
 	 */
-	protected ArrayList<Integer[]> najdisusedne(String[][] matrix2, int row, int column, String textura, Block aktualnyblok) {
-		// TODO Auto-generated method stub
-		return null;
+	protected HashSet<Integer[]> najdiSusedne(int row, int column, String textura, Block aktualnyblok) {
+		HashSet<Integer[]> najdenecell =  new HashSet<Integer[]>();
+		if (isPartofMatrix(row-1,column))
+			if (this.matrix[row -1][column].equals(textura) && !aktualnyblok.isPart(row-1, column))
+				najdenecell.add(new Integer[] {row-1, column});
+		if (isPartofMatrix(row+1,column))
+			if (this.matrix[row+1][column].equals(textura) && !aktualnyblok.isPart(row+1, column))
+				najdenecell.add(new Integer[] {row+1, column});
+		if (isPartofMatrix(row,column-1))
+			if (this.matrix[row][column-1].equals(textura) && !aktualnyblok.isPart(row, column-1))
+				najdenecell.add(new Integer[] {row, column-1});
+		if (isPartofMatrix(row,column+1))
+			if (this.matrix[row][column+1].equals(textura) && !aktualnyblok.isPart(row, column+1))
+				najdenecell.add(new Integer[] {row, column+1});
+		return najdenecell;
+	}
+
+	/**
+	 * @return vyhnutie sa out of bonds error array
+	 */
+	protected boolean isPartofMatrix(int row, int column) {
+		if (row <= -1 || column <= -1) return false;
+		if (row >= this.matrix.length || column >= this.matrix.length) return false;
+		return true;
 	}
 
 	/**
@@ -151,36 +173,42 @@ public class BlockCountLengthArea168 {
 	 * @return vrati novovytvoreny blok
 	 */
 	protected Block pridajdonovehobloku(String[][] matrix2, int row, int column, String textura) {
-		return null;
+		ArrayList<Integer[]> cell = new ArrayList<Integer[]>();
+		cell.add(new Integer[] {row,column});
+		Block blk = new Block(textura, cell);
+		this.blocks.add(blk);
+		return blk;
 
 	}
 
 	/**
 	 * Skontrouje ci na nachadza dana bunka v niektorom z blokov matice
 	 * 
-	 * @param matrix2 matica na ktorej sa to bude testovat
 	 * @param row riadok 
 	 * @param column stlpec
 	 * @return vrati ci je uz dana bunka v nejakom bloku 
 	 */
-	protected boolean checkCell(String[][] matrix2, int row, int column) {
-		// TODO Auto-generated method stub
+	protected boolean checkCell(int row, int column) {
+			 for (Block checkblock : this.blocks) {
+				if (checkblock.isPart(row, column)) return true;
+			}
 		return false;
 	}
 
 	/**
-	 * nacitanie hodnout z prikazoveho riadka. Predpokolada sa stvorcova matica
+	 * nacitanie hodnout z prikazoveho riadka. Predpoklada sa stvorcova matica
 	 */
 	protected void read() {
 		Scanner scan = new Scanner(System.in);
+		int riadok = 0;
 		while (scan.hasNextLine()) {
 			String[] nexline = scan.nextLine().split("(?!^)");
 			if (nexline.length <= 1)
 				break;
-			matrix = new String[nexline.length][nexline.length];
-			for (int i = 0; i < nexline.length; i++) {
-				matrix[i] = nexline;
-			}
+			if (matrix == null)
+				matrix = new String[nexline.length][nexline.length];
+			matrix[riadok] = nexline;
+			riadok++;
 		}
 	}
 }
@@ -247,7 +275,7 @@ class Block {
 	 */
 	public boolean isPart(int row, int column) {
 		for (Integer[] c : bloky) {
-			if (c[0] == 0 && c[1] == column)
+			if (c[0].intValue() == row && c[1].intValue() == column)
 				return true;
 		}
 		return false;
@@ -264,4 +292,5 @@ class Block {
 	public void setBlockPattern(String blockPattern) {
 		this.blockPattern = blockPattern;
 	}
+
 }
